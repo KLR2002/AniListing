@@ -1,0 +1,6 @@
+@AniListingAPI_HostAddress = http://localhost:5151
+
+GET {{AniListingAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

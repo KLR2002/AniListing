@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "toTIjgj8leA=",
+  "success": true,
+  "projectFilePath": "/home/krzysztof/Dokumenty/Projects/AniListing/AniListingAPI/AniListingAPI.csproj",
+  "expectedPackageFiles": [
+    "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.openapi/10.0.11/microsoft.aspnetcore.openapi.10.0.11.nupkg.sha512",
+    "/home/krzysztof/.nuget/packages/microsoft.entityframeworkcore/10.0.12/microsoft.entityframeworkcore.10.0.12.nupkg.sha512",
+    "/home/krzysztof/.nuget/packages/microsoft.entityframeworkcore.abstractions/10.0.12/microsoft.entityframeworkcore.abstractions.10.0.12.nupkg.sha512",
+    "/home/krzysztof/.nuget/packages/microsoft.entityframeworkcore.analyzers/10.0.12/microsoft.entityframeworkcore.analyzers.10.0.12.nupkg.sha512",
+    "/home/krzysztof/.nuget/packages/microsoft.entityframeworkcore.inmemory/10.0.12/microsoft.entityframeworkcore.inmemory.10.0.12.nupkg.sha512",
+    "/home/krzysztof/.nuget/packages/microsoft.openapi/2.7.5/microsoft.openapi.2.7.5.nupkg.sha512"
+  ],
+  "logs": []
+}
