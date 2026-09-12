@@ -1,0 +1,80 @@
+@page "/register"
+@inject IApiClient ApiClient
+@inject NavigationManager NavManager
+
+<div class="auth-page-container">
+    <div class="auth-card">
+        <div class="auth-card-icon">🌸</div>
+        <h2 class="auth-title">Create Account</h2>
+        <p class="auth-subtitle">Join AniListing to track and score your favorites</p>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert-sakura">
+                @errorMessage
+            </div>
+        }
+
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+
+            <div class="form-group-sakura">
+                <label class="form-label-sakura">Username</label>
+                <InputText class="form-control-sakura" @bind-Value="registerModel.Username" placeholder="e.g. anime_master" />
+                <ValidationMessage For="@(() => registerModel.Username)" class="text-danger small mt-1" />
+            </div>
+
+            <div class="form-group-sakura">
+                <label class="form-label-sakura">Password</label>
+                <InputText type="password" class="form-control-sakura" @bind-Value="registerModel.Password" placeholder="Minimum 6 characters" />
+                <ValidationMessage For="@(() => registerModel.Password)" class="text-danger small mt-1" />
+            </div>
+
+            <div class="form-group-sakura">
+                <label class="form-label-sakura">Confirm Password</label>
+                <InputText type="password" class="form-control-sakura" @bind-Value="registerModel.ConfirmPassword" placeholder="Repeat your password" />
+                <ValidationMessage For="@(() => registerModel.ConfirmPassword)" class="text-danger small mt-1" />
+            </div>
+
+            <button type="submit" class="btn-sakura w-100 justify-content-center mt-3" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>Creating account...</span>
+                }
+                else
+                {
+                    <span>🌸 Create Account</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="mt-4 text-center">
+            <span class="text-muted small">Already have an account? </span>
+            <NavLink href="/login" class="fw-bold" style="color: var(--sakura-600); text-decoration: none;">Sign in</NavLink>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private string? errorMessage;
+    private bool isLoading;
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        var result = await ApiClient.RegisterAsync(registerModel);
+        isLoading = false;
+
+        if (result.Success)
+        {
+            NavManager.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = result.Error ?? "Registration failed. Please check your details.";
+        }
+    }
+}

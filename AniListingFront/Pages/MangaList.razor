@@ -1,0 +1,230 @@
+@page "/manga-list"
+@inject IApiClient ApiClient
+@inject NavigationManager NavManager
+
+<div class="container py-4">
+    <AuthorizeView>
+        <Authorized>
+            <!-- Page Header -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+                <div>
+                    <h1 class="h2 fw-extrabold mb-1" style="color: var(--sakura-900);">🌸 My Manga List</h1>
+                    <p class="text-muted mb-0">Track and manage your read manga, manhwa, and light novels</p>
+                </div>
+
+                @if (items.Count > 0)
+                {
+                    <div class="d-flex gap-3">
+                        <div class="card border-0 px-3 py-2 text-center" style="background-color: var(--sakura-100); border-radius: var(--radius-md);">
+                            <span class="small text-muted">Total Manga</span>
+                            <span class="fw-bold fs-5" style="color: var(--sakura-900);">@items.Count</span>
+                        </div>
+                        @if (AverageScore.HasValue)
+                        {
+                            <div class="card border-0 px-3 py-2 text-center" style="background-color: var(--sakura-100); border-radius: var(--radius-md);">
+                                <span class="small text-muted">Mean Score</span>
+                                <span class="fw-bold fs-5" style="color: var(--star-gold);">⭐ @AverageScore.Value.ToString("0.0")</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Filter & Sort Bar -->
+            <div class="filter-bar">
+                <!-- Status Pills -->
+                <div class="status-pills">
+                    <button class="status-pill-btn @(selectedStatus == "All" ? "active" : "")"
+                            @onclick='() => ChangeStatus("All")'>
+                        All (@GetStatusCount("All"))
+                    </button>
+                    <button class="status-pill-btn @(selectedStatus == "Reading" ? "active" : "")"
+                            @onclick='() => ChangeStatus("Reading")'>
+                        Reading (@GetStatusCount("Reading"))
+                    </button>
+                    <button class="status-pill-btn @(selectedStatus == "Completed" ? "active" : "")"
+                            @onclick='() => ChangeStatus("Completed")'>
+                        Completed (@GetStatusCount("Completed"))
+                    </button>
+                    <button class="status-pill-btn @(selectedStatus == "PlanToRead" ? "active" : "")"
+                            @onclick='() => ChangeStatus("PlanToRead")'>
+                        Plan to Read (@GetStatusCount("PlanToRead"))
+                    </button>
+                    <button class="status-pill-btn @(selectedStatus == "Dropped" ? "active" : "")"
+                            @onclick='() => ChangeStatus("Dropped")'>
+                        Dropped (@GetStatusCount("Dropped"))
+                    </button>
+                </div>
+
+                <!-- Sorting Dropdowns -->
+                <div class="sort-controls">
+                    <span class="text-muted small fw-semibold">Sort by:</span>
+                    <select class="sakura-select" value="@sortBy" @onchange="OnSortByChanged">
+                        <option value="name">Title (A-Z)</option>
+                        <option value="score">Score</option>
+                        <option value="date">Date Updated</option>
+                    </select>
+
+                    <select class="sakura-select" value="@sortOrder" @onchange="OnSortOrderChanged">
+                        <option value="desc">Descending</option>
+                        <option value="asc">Ascending</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            @if (isLoading)
+            {
+                <div class="sakura-loader-container" style="min-height: 300px;">
+                    <div class="sakura-spinner">🌸</div>
+                    <div class="loading-progress-text mt-2 text-muted">Loading your manga list...</div>
+                </div>
+            }
+            else if (items.Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">🌸</div>
+                    <div class="empty-state-title">Your Manga List is empty</div>
+                    <p class="empty-state-desc">
+                        @(selectedStatus == "All"
+                            ? "You haven't added any manga yet. Discover top-rated manga and add them to your list!"
+                            : $"You don't have any manga marked as '{selectedStatus}'.")
+                    </p>
+                    <NavLink href="" class="btn-sakura">🔍 Discover Manga</NavLink>
+                </div>
+            }
+            else
+            {
+                <div class="media-grid">
+                    @foreach (var item in items)
+                    {
+                        <div class="media-card">
+                            <NavLink class="poster-wrapper" href="@($"media/manga/{item.MalId}")">
+                                <img class="poster-img"
+                                     src="@(string.IsNullOrEmpty(item.PosterUrl) ? "favicon.png" : item.PosterUrl)"
+                                     alt="@item.Title"
+                                     loading="lazy" />
+
+                                <span class="type-pill" style="background: rgba(224, 67, 115, 0.9);">
+                                    @FormatStatus(item.Status)
+                                </span>
+
+                                @if (item.Score.HasValue)
+                                {
+                                    <span class="score-badge">
+                                        ⭐ @item.Score.Value/10
+                                    </span>
+                                }
+                            </NavLink>
+
+                            <div class="media-info">
+                                <NavLink href="@($"media/manga/{item.MalId}")" class="media-title text-decoration-none" title="@item.Title">
+                                    @item.Title
+                                </NavLink>
+
+                                @if (!string.IsNullOrEmpty(item.JapaneseTitle))
+                                {
+                                    <div class="media-subtitle font-japanese" title="@item.JapaneseTitle">
+                                        @item.JapaneseTitle
+                                    </div>
+                                }
+
+                                <div class="mt-auto pt-2 d-flex align-items-center justify-content-between border-top border-light">
+                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                        Updated @item.UpdatedAt.ToLocalTime().ToString("MMM d")
+                                    </small>
+
+                                    <div class="d-flex gap-1">
+                                        <NavLink href="@($"media/manga/{item.MalId}")" class="btn-sakura-outline btn-sm py-1 px-2" style="font-size: 0.75rem;">
+                                            Edit
+                                        </NavLink>
+                                        <button class="btn-sakura-danger btn-sm py-1 px-2" style="font-size: 0.75rem;" @onclick="() => RemoveItem(item.MalId)">
+                                            ✕
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <div class="empty-state">
+                <div class="empty-state-icon">🌸</div>
+                <h2 class="empty-state-title">Sign in to view your Manga List</h2>
+                <p class="empty-state-desc">Create your personal manga catalog, rate your favorite series, and track your reading progress.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <NavLink href="/login" class="btn-sakura-outline">Sign In</NavLink>
+                    <NavLink href="/register" class="btn-sakura">Create Account</NavLink>
+                </div>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    private List<UserMediaItemModel> items = new();
+    private List<UserMediaItemModel> allItems = new();
+    private string selectedStatus = "All";
+    private string sortBy = "date";
+    private string sortOrder = "desc";
+    private bool isLoading = true;
+
+    private double? AverageScore =>
+        allItems.Where(i => i.Score.HasValue).Any()
+            ? allItems.Where(i => i.Score.HasValue).Average(i => i.Score!.Value)
+            : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadList();
+    }
+
+    private async Task LoadList()
+    {
+        isLoading = true;
+        allItems = await ApiClient.GetUserListAsync("manga", null, sortBy, sortOrder);
+        items = await ApiClient.GetUserListAsync("manga", selectedStatus == "All" ? null : selectedStatus, sortBy, sortOrder);
+        isLoading = false;
+    }
+
+    private async Task ChangeStatus(string status)
+    {
+        selectedStatus = status;
+        await LoadList();
+    }
+
+    private async Task OnSortByChanged(ChangeEventArgs e)
+    {
+        sortBy = e.Value?.ToString() ?? "date";
+        await LoadList();
+    }
+
+    private async Task OnSortOrderChanged(ChangeEventArgs e)
+    {
+        sortOrder = e.Value?.ToString() ?? "desc";
+        await LoadList();
+    }
+
+    private async Task RemoveItem(int malId)
+    {
+        var deleted = await ApiClient.DeleteUserListItemAsync("manga", malId);
+        if (deleted)
+        {
+            await LoadList();
+        }
+    }
+
+    private int GetStatusCount(string status)
+    {
+        if (status == "All") return allItems.Count;
+        return allItems.Count(i => i.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string FormatStatus(string status) => status switch
+    {
+        "PlanToRead" => "Plan to Read",
+        _ => status
+    };
+}

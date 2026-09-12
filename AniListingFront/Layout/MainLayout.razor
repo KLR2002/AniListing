@@ -1,16 +1,16 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inherits LayoutComponentBase
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<div class="app-shell">
+    <NavMenu />
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="main-content">
+        @Body
     </main>
+
+    <footer class="sakura-footer">
+        <div class="container text-center">
+            <p class="mb-1">🌸 <strong>AniListing</strong> — Your Personal Anime &amp; Manga Companion</p>
+            <small class="text-muted">Powered by MyAnimeList API v2 • Crafted with Blazor &amp; ASP.NET Core</small>
+        </div>
+    </footer>
 </div>

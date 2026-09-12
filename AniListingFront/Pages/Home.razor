@@ -1,7 +1,171 @@
-﻿@page "/"
+@page "/"
+@inject IApiClient ApiClient
+@inject NavigationManager NavManager
 
-<PageTitle>Home</PageTitle>
+<!-- Hero & Search -->
+<section class="sakura-hero">
+    <div class="container">
+        <h1 class="hero-title">Find Your Next Favorite Anime &amp; Manga</h1>
+        <p class="hero-subtitle">Search by English or Japanese names, explore details, and track your progress</p>
 
-<h1>Hello, world!</h1>
+        <div class="search-box-container">
+            <!-- Media Type Switch -->
+            <div class="media-type-toggle">
+                <button type="button" 
+                        class="type-toggle-btn @(selectedMediaType == "anime" ? "active" : "")"
+                        @onclick='() => SetMediaType("anime")'>
+                    🌸 Anime
+                </button>
+                <button type="button" 
+                        class="type-toggle-btn @(selectedMediaType == "manga" ? "active" : "")"
+                        @onclick='() => SetMediaType("manga")'>
+                    📖 Manga
+                </button>
+            </div>
 
-Welcome to your new app.
+            <!-- Search Bar -->
+            <div class="search-input-group">
+                <input type="text"
+                       class="search-input"
+                       placeholder="@(selectedMediaType == "anime" ? "Search anime (e.g. Frieren, 葬送のフリーレン, Titan)..." : "Search manga (e.g. Berserk, ベルセルク, One Piece)...")"
+                       @bind="searchQuery"
+                       @bind:event="oninput"
+                       @onkeydown="HandleKeyDown" />
+
+                <button class="btn-sakura" @onclick="ExecuteSearch" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span>Searching...</span>
+                    }
+                    else
+                    {
+                        <span>🔍 Search</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Results Section -->
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h4 fw-bold mb-0" style="color: var(--sakura-900);">
+            @(string.IsNullOrWhiteSpace(searchQuery) ? $"Popular {selectedMediaType.ToUpperInvariant()}" : $"Search Results ({mediaItems.Count})")
+        </h2>
+        <span class="text-muted small">
+            Click any title to view details and add to your personal list
+        </span>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="sakura-loader-container" style="min-height: 300px;">
+            <div class="sakura-spinner">🌸</div>
+            <div class="loading-progress-text mt-2 text-muted">Searching the catalog...</div>
+        </div>
+    }
+    else if (mediaItems.Count == 0)
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">🌸</div>
+            <div class="empty-state-title">No titles found</div>
+            <p class="empty-state-desc">We couldn't find any results matching "@searchQuery". Try searching by alternative English or Japanese title!</p>
+            <button class="btn-sakura-outline" @onclick="ClearSearch">Clear Search</button>
+        </div>
+    }
+    else
+    {
+        <div class="media-grid">
+            @foreach (var item in mediaItems)
+            {
+                <NavLink class="media-card" href="@($"media/{item.MediaType}/{item.Id}")">
+                    <div class="poster-wrapper">
+                        <img class="poster-img" 
+                             src="@(string.IsNullOrEmpty(item.PosterUrl) ? "favicon.png" : item.PosterUrl)" 
+                             alt="@item.Title"
+                             loading="lazy" />
+                        
+                        <span class="type-pill">@item.MediaType</span>
+
+                        @if (item.MeanScore.HasValue)
+                        {
+                            <span class="score-badge">
+                                ⭐ @item.MeanScore.Value.ToString("0.00")
+                            </span>
+                        }
+                    </div>
+
+                    <div class="media-info">
+                        <div class="media-title" title="@item.Title">
+                            @(string.IsNullOrEmpty(item.EnglishTitle) ? item.Title : item.EnglishTitle)
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(item.JapaneseTitle) && item.JapaneseTitle != item.Title)
+                        {
+                            <div class="media-subtitle font-japanese" title="@item.JapaneseTitle">
+                                @item.JapaneseTitle
+                            </div>
+                        }
+
+                        <div class="genre-tags">
+                            @foreach (var genre in item.Genres.Take(3))
+                            {
+                                <span class="genre-tag">@genre</span>
+                            }
+                        </div>
+                    </div>
+                </NavLink>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string selectedMediaType = "anime";
+    private string searchQuery = "";
+    private List<MediaItemModel> mediaItems = new();
+    private bool isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInitialMedia();
+    }
+
+    private async Task SetMediaType(string type)
+    {
+        if (selectedMediaType != type)
+        {
+            selectedMediaType = type;
+            await ExecuteSearch();
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ExecuteSearch();
+        }
+    }
+
+    private async Task ExecuteSearch()
+    {
+        isLoading = true;
+        mediaItems = await ApiClient.SearchMediaAsync(selectedMediaType, searchQuery);
+        isLoading = false;
+    }
+
+    private async Task LoadInitialMedia()
+    {
+        isLoading = true;
+        mediaItems = await ApiClient.SearchMediaAsync(selectedMediaType, "");
+        isLoading = false;
+    }
+
+    private async Task ClearSearch()
+    {
+        searchQuery = "";
+        await ExecuteSearch();
+    }
+}

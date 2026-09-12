@@ -1,0 +1,35 @@
+## Build & Output directories
+bin/
+obj/
+out/
+dist/
+
+## SQLite & Local Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+## User-specific and environment settings
+*.user
+*.userosscache
+*.suo
+appsettings.Development.json
+*.local.json
+
+## Visual Studio & Rider & VS Code
+.vs/
+.idea/
+.vscode/
+*.DotSettings.user
+
+## OS Generated Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+## Logs
+*.log
+logs/

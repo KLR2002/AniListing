@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "VMkk2ppWcEM=",
+  "dgSpecHash": "qcJ7pIAc0Qo=",
   "success": true,
   "projectFilePath": "/home/krzysztof/Dokumenty/Projects/AniListing/AniListingFront/AniListingFront.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,7 @@
     "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.authorization/10.0.11/microsoft.aspnetcore.authorization.10.0.11.nupkg.sha512",
     "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.components/10.0.11/microsoft.aspnetcore.components.10.0.11.nupkg.sha512",
     "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.components.analyzers/10.0.11/microsoft.aspnetcore.components.analyzers.10.0.11.nupkg.sha512",
+    "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.components.authorization/10.0.11/microsoft.aspnetcore.components.authorization.10.0.11.nupkg.sha512",
     "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.components.forms/10.0.11/microsoft.aspnetcore.components.forms.10.0.11.nupkg.sha512",
     "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.components.web/10.0.11/microsoft.aspnetcore.components.web.10.0.11.nupkg.sha512",
     "/home/krzysztof/.nuget/packages/microsoft.aspnetcore.components.webassembly/10.0.11/microsoft.aspnetcore.components.webassembly.10.0.11.nupkg.sha512",

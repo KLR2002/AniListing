@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AniListingAPI.Tests/AniListingAPI.Tests.csproj" />
+  <Project Path="AniListingAPI/AniListingAPI.csproj" />
+  <Project Path="AniListingFront/AniListingFront.csproj" />
+</Solution>

@@ -1,39 +1,67 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">AniListingFront</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
+@inject IApiClient ApiClient
+@inject NavigationManager NavManager
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+<header class="sakura-navbar">
+    <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+        <!-- Logo -->
+        <NavLink class="navbar-brand" href="">
+            <span class="brand-icon">🌸</span>
+            <span>Ani<span class="brand-highlight">Listing</span></span>
+        </NavLink>
+
+        <!-- Navigation Links -->
+        <nav class="d-flex align-items-center">
+            <ul class="nav-links">
+                <li>
+                    <NavLink class="nav-link-custom" href="" Match="NavLinkMatch.All">
+                        <span>🔍 Discover</span>
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink class="nav-link-custom" href="anime-list">
+                        <span>🌸 Anime List</span>
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink class="nav-link-custom" href="manga-list">
+                        <span>🌸 Manga List</span>
+                    </NavLink>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Auth Section -->
+        <div class="d-flex align-items-center gap-2">
+            <AuthorizeView>
+                <Authorized>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill" style="background-color: var(--sakura-100); color: var(--sakura-900); font-weight: 700; padding: 0.5rem 0.85rem; font-size: 0.88rem;">
+                            🌸 @context.User.Identity?.Name
+                        </span>
+                        <button class="btn-sakura-outline btn-sm" @onclick="Logout">
+                            Log out
+                        </button>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="d-flex align-items-center gap-2">
+                        <NavLink class="btn-sakura-outline btn-sm" href="login">
+                            Sign In
+                        </NavLink>
+                        <NavLink class="btn-sakura btn-sm" href="register">
+                            Sign Up
+                        </NavLink>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    </div>
+</header>
 
 @code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
+    private async Task Logout()
     {
-        collapseNavMenu = !collapseNavMenu;
+        await ApiClient.LogoutAsync();
+        NavManager.NavigateTo("/", forceLoad: false);
     }
 }

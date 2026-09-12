@@ -1,0 +1,74 @@
+@page "/login"
+@inject IApiClient ApiClient
+@inject NavigationManager NavManager
+
+<div class="auth-page-container">
+    <div class="auth-card">
+        <div class="auth-card-icon">🌸</div>
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to manage your anime and manga list</p>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert-sakura">
+                @errorMessage
+            </div>
+        }
+
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <div class="form-group-sakura">
+                <label class="form-label-sakura">Username</label>
+                <InputText class="form-control-sakura" @bind-Value="loginModel.Username" placeholder="e.g. sakura_fan" />
+                <ValidationMessage For="@(() => loginModel.Username)" class="text-danger small mt-1" />
+            </div>
+
+            <div class="form-group-sakura">
+                <label class="form-label-sakura">Password</label>
+                <InputText type="password" class="form-control-sakura" @bind-Value="loginModel.Password" placeholder="••••••••" />
+                <ValidationMessage For="@(() => loginModel.Password)" class="text-danger small mt-1" />
+            </div>
+
+            <button type="submit" class="btn-sakura w-100 justify-content-center mt-3" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span>Signing in...</span>
+                }
+                else
+                {
+                    <span>🌸 Sign In</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="mt-4 text-center">
+            <span class="text-muted small">Don't have an account yet? </span>
+            <NavLink href="/register" class="fw-bold" style="color: var(--sakura-600); text-decoration: none;">Create an account</NavLink>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+    private bool isLoading;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        var result = await ApiClient.LoginAsync(loginModel);
+        isLoading = false;
+
+        if (result.Success)
+        {
+            NavManager.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = result.Error ?? "Login failed. Please verify your credentials.";
+        }
+    }
+}

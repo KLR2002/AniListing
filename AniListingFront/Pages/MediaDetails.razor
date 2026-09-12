@@ -1,0 +1,338 @@
+@page "/media/{MediaType}/{Id:int}"
+@inject IApiClient ApiClient
+@inject NavigationManager NavManager
+
+<div class="container details-container">
+    <div class="mb-3">
+        <NavLink href="" class="btn-sakura-outline btn-sm">
+            ← Back to Discover
+        </NavLink>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="sakura-loader-container" style="min-height: 400px;">
+            <div class="sakura-spinner">🌸</div>
+            <div class="loading-progress-text mt-2 text-muted">Loading media details...</div>
+        </div>
+    }
+    else if (media == null)
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">🌸</div>
+            <div class="empty-state-title">Media Not Found</div>
+            <p class="empty-state-desc">We couldn't retrieve details for this @MediaType.</p>
+            <NavLink href="" class="btn-sakura">Return to Discover</NavLink>
+        </div>
+    }
+    else
+    {
+        <div class="details-header-card">
+            <div class="row g-4">
+                <!-- Left Column: Poster & Quick Stats -->
+                <div class="col-md-4 col-lg-3">
+                    <div class="details-poster-box mb-3">
+                        <img src="@(string.IsNullOrEmpty(media.PosterUrl) ? "favicon.png" : media.PosterUrl)" 
+                             alt="@media.Title" />
+                    </div>
+
+                    <div class="card p-3 border-0" style="background-color: var(--sakura-50); border-radius: var(--radius-md);">
+                        <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                            <span class="text-muted small">Type</span>
+                            <span class="fw-bold text-uppercase small" style="color: var(--sakura-600);">@media.MediaType</span>
+                        </div>
+
+                        @if (media.MeanScore.HasValue)
+                        {
+                            <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                <span class="text-muted small">Score</span>
+                                <span class="fw-bold" style="color: var(--star-gold);">⭐ @media.MeanScore.Value.ToString("0.00")</span>
+                            </div>
+                        }
+
+                        @if (media.Rank.HasValue)
+                        {
+                            <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                <span class="text-muted small">Rank</span>
+                                <span class="fw-bold">#@media.Rank.Value</span>
+                            </div>
+                        }
+
+                        @if (media.Popularity.HasValue)
+                        {
+                            <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                <span class="text-muted small">Popularity</span>
+                                <span class="fw-bold">#@media.Popularity.Value</span>
+                            </div>
+                        }
+
+                        @if (media.EpisodeCount.HasValue)
+                        {
+                            <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                <span class="text-muted small">Episodes</span>
+                                <span class="fw-bold">@media.EpisodeCount.Value</span>
+                            </div>
+                        }
+
+                        @if (media.ChapterCount.HasValue)
+                        {
+                            <div class="d-flex justify-content-between py-1 border-bottom border-light">
+                                <span class="text-muted small">Chapters</span>
+                                <span class="fw-bold">@media.ChapterCount.Value</span>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(media.StudioOrAuthor))
+                        {
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-muted small">@(media.MediaType == "anime" ? "Studio" : "Author")</span>
+                                <span class="fw-bold text-end small">@media.StudioOrAuthor</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Right Column: Titles, Synopsis, and Personal List Tracking -->
+                <div class="col-md-8 col-lg-9">
+                    <h1 class="h2 fw-extrabold mb-1" style="color: var(--sakura-900);">
+                        @(string.IsNullOrEmpty(media.EnglishTitle) ? media.Title : media.EnglishTitle)
+                    </h1>
+
+                    @if (!string.IsNullOrEmpty(media.JapaneseTitle))
+                    {
+                        <div class="font-japanese fs-5 mb-2" style="color: var(--sakura-600);">
+                            @media.JapaneseTitle
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(media.Title) && media.Title != media.EnglishTitle)
+                    {
+                        <div class="text-muted small mb-3">
+                            Romaji: @media.Title
+                        </div>
+                    }
+
+                    <!-- Genres -->
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        @foreach (var genre in media.Genres)
+                        {
+                            <span class="badge rounded-pill px-3 py-2" style="background-color: var(--sakura-100); color: var(--sakura-700); font-weight: 600;">
+                                @genre
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Synopsis -->
+                    <div class="mb-4">
+                        <h3 class="h5 fw-bold" style="color: var(--sakura-900);">Synopsis</h3>
+                        <p class="text-secondary leading-relaxed" style="white-space: pre-line; line-height: 1.7;">
+                            @(string.IsNullOrEmpty(media.Synopsis) ? "No synopsis available." : media.Synopsis)
+                        </p>
+                    </div>
+
+                    <!-- Personal List Management Box -->
+                    <div class="tracking-card">
+                        <div class="tracking-title">
+                            <span>🌸 Personal Tracking &amp; Score</span>
+                        </div>
+
+                        <AuthorizeView>
+                            <Authorized>
+                                @if (!string.IsNullOrEmpty(feedbackMessage))
+                                {
+                                    <div class="alert-sakura-success">
+                                        @feedbackMessage
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(errorMessage))
+                                {
+                                    <div class="alert-sakura">
+                                        @errorMessage
+                                    </div>
+                                }
+
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-sm-5">
+                                        <label class="form-label-sakura">Status</label>
+                                        <select class="form-control-sakura" @bind="selectedStatus">
+                                            @if (media.MediaType == "anime")
+                                            {
+                                                <option value="Watching">Watching</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="PlanToWatch">Plan to Watch</option>
+                                                <option value="Dropped">Dropped</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="Reading">Reading</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="PlanToRead">Plan to Read</option>
+                                                <option value="Dropped">Dropped</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="col-sm-4">
+                                        <label class="form-label-sakura">Your Score</label>
+                                        <select class="form-control-sakura" @bind="selectedScore">
+                                            <option value="">Select score (1-10)</option>
+                                            <option value="10">⭐ (10) Masterpiece</option>
+                                            <option value="9">⭐ (9) Great</option>
+                                            <option value="8">⭐ (8) Very Good</option>
+                                            <option value="7">⭐ (7) Good</option>
+                                            <option value="6">⭐ (6) Fine</option>
+                                            <option value="5">⭐ (5) Average</option>
+                                            <option value="4">⭐ (4) Bad</option>
+                                            <option value="3">⭐ (3) Very Bad</option>
+                                            <option value="2">⭐ (2) Horrible</option>
+                                            <option value="1">⭐ (1) Appalling</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-sm-3 d-flex gap-2">
+                                        <button class="btn-sakura w-100 justify-content-center" @onclick="SaveToList" disabled="@isSaving">
+                                            @if (isSaving)
+                                            {
+                                                <span>Saving...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@(existingItem != null ? "Update List" : "Add to List")</span>
+                                            }
+                                        </button>
+
+                                        @if (existingItem != null)
+                                        {
+                                            <button class="btn-sakura-danger" @onclick="RemoveFromList" title="Remove from list" disabled="@isSaving">
+                                                🗑️
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (existingItem != null)
+                                {
+                                    <div class="text-muted small mt-2">
+                                        ✓ Currently in your personal list • Last updated: @existingItem.UpdatedAt.ToLocalTime().ToString("g")
+                                    </div>
+                                }
+                            </Authorized>
+                            <NotAuthorized>
+                                <div class="d-flex align-items-center justify-content-between p-2">
+                                    <div>
+                                        <span class="fw-semibold">Sign in to save this @media.MediaType to your list and give it a rating!</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <NavLink href="/login" class="btn-sakura-outline btn-sm">Sign In</NavLink>
+                                        <NavLink href="/register" class="btn-sakura btn-sm">Sign Up</NavLink>
+                                    </div>
+                                </div>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string MediaType { get; set; } = "anime";
+    [Parameter] public int Id { get; set; }
+
+    private MediaDetailsModel? media;
+    private UserMediaItemModel? existingItem;
+    private string selectedStatus = "Watching";
+    private string selectedScore = "";
+    private bool isLoading = true;
+    private bool isSaving;
+    private string? feedbackMessage;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadMedia();
+    }
+
+    private async Task LoadMedia()
+    {
+        isLoading = true;
+        feedbackMessage = null;
+        errorMessage = null;
+
+        media = await ApiClient.GetMediaDetailsAsync(MediaType, Id);
+
+        if (media != null)
+        {
+            selectedStatus = media.MediaType == "anime" ? "Watching" : "Reading";
+            existingItem = await ApiClient.CheckUserListItemAsync(MediaType, Id);
+
+            if (existingItem != null)
+            {
+                selectedStatus = existingItem.Status;
+                selectedScore = existingItem.Score.HasValue ? existingItem.Score.Value.ToString() : "";
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private async Task SaveToList()
+    {
+        if (media == null) return;
+
+        isSaving = true;
+        feedbackMessage = null;
+        errorMessage = null;
+
+        int? scoreVal = int.TryParse(selectedScore, out var s) ? s : null;
+
+        var saveModel = new SaveUserMediaModel
+        {
+            MalId = media.Id,
+            MediaType = media.MediaType,
+            Title = string.IsNullOrEmpty(media.EnglishTitle) ? media.Title : media.EnglishTitle,
+            JapaneseTitle = media.JapaneseTitle,
+            PosterUrl = media.PosterUrl,
+            Status = selectedStatus,
+            Score = scoreVal
+        };
+
+        var (success, error, item) = await ApiClient.SaveUserListItemAsync(saveModel);
+        isSaving = false;
+
+        if (success && item != null)
+        {
+            existingItem = item;
+            feedbackMessage = $"🌸 Successfully updated in your {media.MediaType.ToUpperInvariant()} list!";
+        }
+        else
+        {
+            errorMessage = error ?? "Failed to save item to list.";
+        }
+    }
+
+    private async Task RemoveFromList()
+    {
+        if (media == null) return;
+
+        isSaving = true;
+        feedbackMessage = null;
+        errorMessage = null;
+
+        var deleted = await ApiClient.DeleteUserListItemAsync(media.MediaType, media.Id);
+        isSaving = false;
+
+        if (deleted)
+        {
+            existingItem = null;
+            selectedScore = "";
+            feedbackMessage = "🌸 Removed from your list.";
+        }
+        else
+        {
+            errorMessage = "Failed to remove item from list.";
+        }
+    }
+}
