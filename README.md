@@ -23,12 +23,6 @@ AniListing integrates with the official **MyAnimeList API v2** to search and vie
   - Dedicated **🌸 My Anime List** (`/anime-list`) and **🌸 My Manga List** (`/manga-list`).
   - Status filters tailored to each medium.
   - Multi-criteria sorting by **Title (A-Z)**, **Personal Score (10–1)**, or **Date Updated (Recent first)**.
-- **Sakura Flowers Theme**:
-  - Delicate floral aesthetic inspired by cherry blossoms with soft ivory-pink backgrounds (`#FFF7FA`), floral accent buttons (`#E04373`), petal badges, and responsive layouts.
-- **Smart Dry-Run / Mock Fallback**:
-  - Test the entire application immediately without needing a MyAnimeList API key!
-  - When no Client ID is configured, the backend seamlessly provides a rich catalog of popular anime and manga.
-  - Once you get your official MAL API key, simply paste it into `appsettings.json` and the app automatically switches to live MyAnimeList API v2 queries.
 
 ---
 
