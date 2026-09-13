@@ -3,7 +3,7 @@ bin/
 obj/
 out/
 dist/
-
+docs/
 ## SQLite & Local Databases
 *.db
 *.db-shm
@@ -15,7 +15,7 @@ dist/
 *.user
 *.userosscache
 *.suo
-appsettings.Development.json
+AniListingAPI/appsettings.Development.json
 *.local.json
 
 ## Visual Studio & Rider & VS Code

@@ -62,13 +62,15 @@ When you are ready to use the live MyAnimeList API:
 
 1. Go to [MyAnimeList API Config](https://myanimelist.net/apiconfig) and create an API client.
 2. Copy your **Client ID**.
-3. Open `AniListingAPI/appsettings.json` and paste your Client ID:
+3. Open `AniListingAPI/appsettings.Development.json` (or `appsettings.json`) and paste your Client ID:
 
 ```json
 "MyAnimeList": {
   "ClientId": "YOUR_ACTUAL_CLIENT_ID_HERE"
 }
 ```
+
+*(Putting your key in `appsettings.Development.json` is recommended because it is already included in `.gitignore`, preventing accidental commits to Git.)*
 
 4. Restart `AniListingAPI`. The app will now query live MyAnimeList API v2 endpoints!
 

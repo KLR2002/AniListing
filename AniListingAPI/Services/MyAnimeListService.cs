@@ -29,11 +29,12 @@ public class MyAnimeListService : IMyAnimeListService
     public async Task<List<MediaItemDto>> SearchMediaAsync(string mediaType, string query)
     {
         var type = mediaType.ToLower() == "manga" ? "manga" : "anime";
+        var cleanQuery = query?.Trim() ?? string.Empty;
 
         if (IsMockMode)
         {
-            _logger.LogInformation("Using smart mock media catalog for search: {Type}, {Query}", type, query);
-            return MockMediaCatalog.Search(type, query);
+            _logger.LogInformation("Using smart mock media catalog for search: {Type}, {Query}", type, cleanQuery);
+            return MockMediaCatalog.Search(type, cleanQuery);
         }
 
         try
@@ -42,7 +43,9 @@ public class MyAnimeListService : IMyAnimeListService
                 ? "id,title,main_picture,alternative_titles,mean,synopsis,genres,status,num_episodes,start_date"
                 : "id,title,main_picture,alternative_titles,mean,synopsis,genres,status,num_chapters,num_volumes,start_date";
 
-            var url = $"{BaseUrl}/{type}?q={Uri.EscapeDataString(query)}&limit=25&fields={fields}";
+            var url = string.IsNullOrEmpty(cleanQuery)
+                ? $"{BaseUrl}/{type}/ranking?ranking_type=bypopularity&limit=25&fields={fields}"
+                : $"{BaseUrl}/{type}?q={Uri.EscapeDataString(cleanQuery)}&limit=25&fields={fields}";
 
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Add("X-MAL-CLIENT-ID", _clientId);
@@ -51,7 +54,7 @@ public class MyAnimeListService : IMyAnimeListService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("MyAnimeList API returned status {Status}. Falling back to mock catalog.", response.StatusCode);
-                return MockMediaCatalog.Search(type, query);
+                return MockMediaCatalog.Search(type, cleanQuery);
             }
 
             var malResponse = await response.Content.ReadFromJsonAsync<MalSearchResponse>();
@@ -68,7 +71,7 @@ public class MyAnimeListService : IMyAnimeListService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching from MyAnimeList API. Falling back to mock catalog.");
-            return MockMediaCatalog.Search(type, query);
+            return MockMediaCatalog.Search(type, cleanQuery);
         }
     }
 

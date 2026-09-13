@@ -79,12 +79,74 @@ public class MediaServiceTests
     }
 
     [Fact]
-    public async Task GetMediaDetails_InvalidId_ReturnsNull()
+    public async Task SearchMedia_EmptyQuery_InMockMode_ReturnsPopularList()
     {
         var service = CreateMediaService();
 
-        var item = await service.GetMediaDetailsAsync("anime", 99999999);
+        var results = await service.SearchMediaAsync("anime", "");
 
-        Assert.Null(item);
+        Assert.NotEmpty(results);
+        Assert.Contains(results, r => r.Title.Contains("Frieren"));
+    }
+
+    [Fact]
+    public async Task SearchMedia_EmptyQuery_WithClientId_CallsRankingEndpoint()
+    {
+        var testHandler = new TestRankingHttpMessageHandler();
+        var httpClient = new HttpClient(testHandler);
+
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "MyAnimeList:ClientId", "valid_client_id_123" }
+            })
+            .Build();
+
+        var service = new MyAnimeListService(httpClient, config, NullLogger<MyAnimeListService>.Instance);
+
+        var results = await service.SearchMediaAsync("anime", "");
+
+        Assert.NotNull(testHandler.LastRequestedUri);
+        Assert.Contains("/anime/ranking?ranking_type=bypopularity", testHandler.LastRequestedUri.PathAndQuery);
+        Assert.NotEmpty(results);
+        Assert.Equal("Ranking Title from Live API", results[0].Title);
+    }
+
+    private class TestRankingHttpMessageHandler : HttpMessageHandler
+    {
+        public Uri? LastRequestedUri { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastRequestedUri = request.RequestUri;
+
+            var jsonResponse = """
+            {
+                "data": [
+                    {
+                        "node": {
+                            "id": 1001,
+                            "title": "Ranking Title from Live API",
+                            "main_picture": {
+                                "large": "https://example.com/poster.jpg"
+                            },
+                            "mean": 8.95,
+                            "synopsis": "Live API popular ranking synopsis."
+                        },
+                        "ranking": {
+                            "rank": 1
+                        }
+                    }
+                ]
+            }
+            """;
+
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(jsonResponse, System.Text.Encoding.UTF8, "application/json")
+            };
+
+            return Task.FromResult(response);
+        }
     }
 }
