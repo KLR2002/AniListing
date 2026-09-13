@@ -68,25 +68,60 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
         var claims = new List<Claim>();
         var payload = jwt.Split('.')[1];
         var jsonBytes = ParseBase64WithoutPadding(payload);
-        var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
 
-        if (keyValuePairs == null) return claims;
-
-        foreach (var kvp in keyValuePairs)
+        using var doc = JsonDocument.Parse(jsonBytes);
+        foreach (var property in doc.RootElement.EnumerateObject())
         {
-            var valueString = kvp.Value.ToString() ?? string.Empty;
-
-            if (kvp.Key == "unique_name" || kvp.Key == ClaimTypes.Name)
+            if (property.Value.ValueKind == JsonValueKind.Array)
             {
-                claims.Add(new Claim(ClaimTypes.Name, valueString));
-            }
-            else if (kvp.Key == "sub" || kvp.Key == ClaimTypes.NameIdentifier)
-            {
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, valueString));
+                if (property.Name == "unique_name" || property.Name == ClaimTypes.Name)
+                {
+                    var first = property.Value.EnumerateArray().FirstOrDefault();
+                    var nameVal = first.ValueKind == JsonValueKind.String ? first.GetString() : first.ToString();
+                    if (!string.IsNullOrEmpty(nameVal))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Name, nameVal));
+                    }
+                }
+                else if (property.Name == "sub" || property.Name == ClaimTypes.NameIdentifier)
+                {
+                    var first = property.Value.EnumerateArray().FirstOrDefault();
+                    var subVal = first.ValueKind == JsonValueKind.String ? first.GetString() : first.ToString();
+                    if (!string.IsNullOrEmpty(subVal))
+                    {
+                        claims.Add(new Claim(ClaimTypes.NameIdentifier, subVal));
+                    }
+                }
+                else
+                {
+                    foreach (var element in property.Value.EnumerateArray())
+                    {
+                        var val = element.ValueKind == JsonValueKind.String ? element.GetString() : element.ToString();
+                        if (!string.IsNullOrEmpty(val))
+                        {
+                            claims.Add(new Claim(property.Name, val));
+                        }
+                    }
+                }
             }
             else
             {
-                claims.Add(new Claim(kvp.Key, valueString));
+                var val = property.Value.ValueKind == JsonValueKind.String ? property.Value.GetString() : property.Value.ToString();
+                if (val != null)
+                {
+                    if (property.Name == "unique_name" || property.Name == ClaimTypes.Name)
+                    {
+                        claims.Add(new Claim(ClaimTypes.Name, val));
+                    }
+                    else if (property.Name == "sub" || property.Name == ClaimTypes.NameIdentifier)
+                    {
+                        claims.Add(new Claim(ClaimTypes.NameIdentifier, val));
+                    }
+                    else
+                    {
+                        claims.Add(new Claim(property.Name, val));
+                    }
+                }
             }
         }
 

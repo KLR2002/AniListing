@@ -134,4 +134,23 @@ public class AuthTests
         var unauthorized = Assert.IsType<UnauthorizedObjectResult>(actionResult.Result);
         Assert.NotNull(unauthorized.Value);
     }
+
+    [Fact]
+    public void CreateToken_ProducesSingleNameClaim_NotAnArray()
+    {
+        var tokenService = CreateTokenService();
+        var user = new User { Id = 42, Username = "TestUser" };
+
+        var token = tokenService.CreateToken(user);
+        var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+
+        var nameClaims = jwtToken.Claims.Where(c => c.Type == "unique_name" || c.Type == ClaimTypes.Name).ToList();
+        Assert.Single(nameClaims);
+        Assert.Equal("TestUser", nameClaims[0].Value);
+
+        var subClaims = jwtToken.Claims.Where(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier).ToList();
+        Assert.Single(subClaims);
+        Assert.Equal("42", subClaims[0].Value);
+    }
 }

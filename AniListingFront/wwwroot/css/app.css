@@ -624,3 +624,37 @@ body {
     max-width: 400px;
     margin: 0 auto 1.5rem;
 }
+
+/* --- Blazor Error UI --- */
+#blazor-error-ui {
+    background: #FFF1F4;
+    color: #BE123C;
+    border-top: 2px solid var(--sakura-300);
+    bottom: 0;
+    box-shadow: var(--shadow-lg);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: 0.75rem 1.5rem;
+    position: fixed;
+    width: 100%;
+    z-index: 10000;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+#blazor-error-ui .reload {
+    color: var(--sakura-600);
+    font-weight: 700;
+    margin-left: 0.5rem;
+    text-decoration: underline;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 1rem;
+    top: 0.75rem;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
