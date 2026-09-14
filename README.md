@@ -4,6 +4,8 @@ A modern, aesthetic anime and manga tracking application with a **Sakura Flowers
 
 AniListing integrates with the official **MyAnimeList API v2** to search and view anime and manga details, while providing a secure personal tracking and rating system saved in a local SQLite database.
 
+Checkout [demo](https://anilisting.onrender.com/) (WARNING: it's only preview, login data are **not persistent**)
+
 ---
 
 ## 🌸 Features
