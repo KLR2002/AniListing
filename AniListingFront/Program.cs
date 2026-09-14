@@ -19,8 +19,13 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredServ
 builder.Services.AddScoped(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
-    var backendUrl = config["BackendUrl"] ?? "http://localhost:5000";
-    return new HttpClient { BaseAddress = new Uri(backendUrl) };
+    var backendUrl = config["BackendUrl"];
+
+    var baseUri = !string.IsNullOrWhiteSpace(backendUrl)
+        ? new Uri(backendUrl)
+        : new Uri(builder.HostEnvironment.BaseAddress);
+
+    return new HttpClient { BaseAddress = baseUri };
 });
 
 // Api Client Service
